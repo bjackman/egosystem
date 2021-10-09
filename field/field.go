@@ -59,7 +59,6 @@ func (g *SquareGrid) Value(point space.Point) float32 {
 		log.Fatalf("Point %v not within square grid of size %v@%v", point, g.size, g.resolution)
 	}
 
-	log.Printf("%+v", origin)
 	// Get position of point within the square, treating the square's size as unit.
 	res := float32(g.resolution.Centimeters())
 	squareX := float32(point.X%g.resolution) / res
