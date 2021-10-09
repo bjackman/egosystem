@@ -45,10 +45,6 @@ func bilinearInterpUnit(z00, z01, z10, z11 int8, x, y float32) float32 {
 }
 
 func (g *SquareGrid) Value(point space.Point) float32 {
-	if g.resolution == space.Distance(0) {
-		log.Panic("what")
-	}
-
 	// Index of originwards node of the square that point is in
 	origin := index2D{
 		x: point.X.Div(g.resolution),
