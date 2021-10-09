@@ -26,6 +26,10 @@ func (d Distance) Div(denominator Distance) int {
 	return int(d / denominator)
 }
 
+func (d Distance) MulInt(i int) Distance {
+	return d * Distance(i)
+}
+
 func (d Distance) String() string {
 	switch {
 	case d < Meter:

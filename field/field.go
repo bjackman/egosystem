@@ -2,7 +2,6 @@ package field
 
 import (
 	"egosystem/space"
-	"log"
 )
 
 type SquareGrid struct {
@@ -45,14 +44,26 @@ func bilinearInterpUnit(z00, z01, z10, z11 int8, x, y float32) float32 {
 }
 
 func (g *SquareGrid) Value(point space.Point) float32 {
+	xOob := point.X < 0 || point.X >= g.dimension()
+	yOob := point.Y < 0 || point.Y >= g.dimension()
+
+	if xOob && yOob {
+		// point is out of the supported region along both axes. Use value from
+		// closest corner node.
+		var nodeX, nodeY int
+		if point.X > 0 {
+			nodeX = g.size - 1
+		}
+		if point.Y > 0 {
+			nodeY = g.size - 1
+		}
+		return float32(g.nodes[nodeX][nodeY])
+	}
+
 	// Index of originwards node of the square that point is in
 	origin := index2D{
 		x: point.X.Div(g.resolution),
 		y: point.Y.Div(g.resolution),
-	}
-	if !origin.InSquare(g.size) {
-		// TODO: Handle this, log non-fatally but only if it's outside by a non-negligible margin
-		log.Fatalf("Point %v not within square grid of size %v@%v", point, g.size, g.resolution)
 	}
 
 	// Get position of point within the square, treating the square's size as unit.
@@ -67,4 +78,8 @@ func (g *SquareGrid) Value(point space.Point) float32 {
 		g.nodes[origin.x+1][origin.y+1],
 		squareX, squareY,
 	)
+}
+
+func (g *SquareGrid) dimension() space.Distance {
+	return g.resolution.MulInt(g.size - 1)
 }

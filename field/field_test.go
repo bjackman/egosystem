@@ -37,9 +37,9 @@ func TestSquareGridInterpolation(t *testing.T) {
 	grid := SquareGrid{
 		// Warning: X axis is veritical in this literal!
 		nodes: [][]int8{
-			{0, 100, 0},
+			{0, 100, 50},
 			{-70, 100, -100},
-			{0, -50, 0},
+			{90, -50, 10},
 		},
 		size:       3,
 		resolution: space.Meter,
@@ -51,11 +51,15 @@ func TestSquareGridInterpolation(t *testing.T) {
 		{X: 1 * space.Meter, Y: 0}: -70.0,
 		// Originwards edge of grid
 		{X: 50 * space.Centimeter, Y: 0}:  -35.0,
-		{X: 0, Y: 125 * space.Centimeter}: 75.0,
+		{X: 0, Y: 125 * space.Centimeter}: 87.5,
 		// Non-originwards edge of grid
 		// TODO: {X: 2 * space.Meter, Y: 10 * space.Centimeter}: -5.0,
 		// TODO: OOB in one dimension
-		// TODO: OOB in both dimensions
+		// OOB in both dimensions
+		{X: -1 * space.Kilometer, Y: -1 * space.Kilometer}: 0.0,
+		{X: -1 * space.Kilometer, Y: +1 * space.Kilometer}: 50.0,
+		{X: +1 * space.Kilometer, Y: -1 * space.Kilometer}: 90.0,
+		{X: +1 * space.Kilometer, Y: +1 * space.Kilometer}: 10.0,
 		// Node
 		{X: 1 * space.Meter, Y: 1 * space.Meter}: 100.0,
 		// Edge
@@ -63,7 +67,7 @@ func TestSquareGridInterpolation(t *testing.T) {
 		// In the middle
 		// Calculated by
 		// https://www.ajdesigner.com/phpinterpolation/bilinear_interpolation_equation.php
-		{X: 145 * space.Centimeter, Y: 163 * space.Centimeter}: -22.625,
+		{X: 145 * space.Centimeter, Y: 163 * space.Centimeter}: -19.79,
 	} {
 		got := grid.Value(point)
 		if diff := cmp.Diff(got, want, cmpopts.EquateApprox(0, 0.000001)); diff != "" {
