@@ -33,6 +33,12 @@ func (i index2D) InSquare(size int) bool {
 	return i.x >= 0 && i.x < size && i.y >= 0 && i.y < size
 }
 
+// Given two nodes unit distance apart with values z0 and z1, get the value at d
+// along the line between those nodes.
+func linearInterpUnit(z0, z1, d float32) float32 {
+	return float32(z0) + d*float32(z1-z0)
+}
+
 // Given a unit square field with nodes zxy at each of the four corners, do
 // bilinear interpolation to get the value at x,y inside that square.
 // https://blogs.sas.com/content/iml/2020/05/18/what-is-bilinear-interpolation.html
@@ -47,9 +53,11 @@ func (g *SquareGrid) Value(point space.Point) float32 {
 	xOob := point.X < 0 || point.X >= g.dimension()
 	yOob := point.Y < 0 || point.Y >= g.dimension()
 
+	res := float32(g.resolution.Centimeters())
+
+	// Handle if point is out of bounds on one or both axes.
 	if xOob && yOob {
-		// point is out of the supported region along both axes. Use value from
-		// closest corner node.
+		// Use value from closest corner node.
 		var nodeX, nodeY int
 		if point.X > 0 {
 			nodeX = g.size - 1
@@ -58,6 +66,36 @@ func (g *SquareGrid) Value(point space.Point) float32 {
 			nodeY = g.size - 1
 		}
 		return float32(g.nodes[nodeX][nodeY])
+	} else if xOob {
+		// Do linear interpolation between two nodes on the Y edge.
+		origin := index2D{
+			y: point.Y.Div(g.resolution),
+		}
+		if point.X < 0 {
+			origin.x = 0 // Originwards y-edge
+		} else {
+			origin.x = g.size - 1 // Other y-edge
+		}
+		return linearInterpUnit(
+			float32(g.nodes[origin.x][origin.y]),
+			float32(g.nodes[origin.x][origin.y+1]),
+			float32(point.Y%g.resolution)/res,
+		)
+	} else if yOob {
+		// Same as above but with x/y swapped.
+		origin := index2D{
+			x: point.X.Div(g.resolution),
+		}
+		if point.Y < 0 {
+			origin.y = 0
+		} else {
+			origin.y = g.size - 1
+		}
+		return linearInterpUnit(
+			float32(g.nodes[origin.x][origin.y]),
+			float32(g.nodes[origin.x+1][origin.y]),
+			float32(point.X%g.resolution)/res,
+		)
 	}
 
 	// Index of originwards node of the square that point is in
@@ -67,7 +105,6 @@ func (g *SquareGrid) Value(point space.Point) float32 {
 	}
 
 	// Get position of point within the square, treating the square's size as unit.
-	res := float32(g.resolution.Centimeters())
 	squareX := float32(point.X%g.resolution) / res
 	squareY := float32(point.Y%g.resolution) / res
 

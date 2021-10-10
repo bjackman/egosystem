@@ -53,8 +53,11 @@ func TestSquareGridInterpolation(t *testing.T) {
 		{X: 50 * space.Centimeter, Y: 0}:  -35.0,
 		{X: 0, Y: 125 * space.Centimeter}: 87.5,
 		// Non-originwards edge of grid
-		// TODO: {X: 2 * space.Meter, Y: 10 * space.Centimeter}: -5.0,
-		// TODO: OOB in one dimension
+		{X: 2 * space.Meter, Y: 10 * space.Centimeter}: 76.0,
+		{X: 50 * space.Centimeter, Y: 2 * space.Meter}: -25.0,
+		// OOB in one dimension
+		{X: 3 * space.Meter, Y: 10 * space.Centimeter}: 76.0,
+		{X: 50 * space.Centimeter, Y: 3 * space.Meter}: -25.0,
 		// OOB in both dimensions
 		{X: -1 * space.Kilometer, Y: -1 * space.Kilometer}: 0.0,
 		{X: -1 * space.Kilometer, Y: +1 * space.Kilometer}: 50.0,
